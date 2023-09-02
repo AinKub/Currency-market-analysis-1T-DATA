@@ -1,2 +1,2 @@
 # Currency-market-analysis-1T-DATA
-ETL-process of forming data marts for the analysis of changes in the exchange rate
+**Проект по созданию ETL-процесса формирования витрин данных для анализа изменений курса валют из источника https://www.alphavantage.co**
