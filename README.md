@@ -1,7 +1,7 @@
 # Currency-market-analysis-1T-DATA
 **Проект по созданию ETL-процесса формирования витрин данных для анализа изменений курса валют из источника https://www.alphavantage.co**
 
-Полное описание задачи находится в файле [project_task.md](./project_task.md)
+Полное описание задачи находится в файле [project_task.md](./docs/project_task.md)
 
 ## Шаги реализации
 На начальном этапе была поставлена задача спроектировать DHW, его логическую структуру, от которой впоследующем можно было бы отталкиваться в выборе инструментов для организации ETL процесса.
@@ -70,6 +70,6 @@
 <br></br>
 Диаграмму слоёв DWH (или КХД) можно увидеть на рисунке ниже:
 <br></br>
-![cores diagram](./cores_diagram.jpg)
+![cores diagram](./docs/img/cores_diagram.jpg)
 
 Или здесь, более детально, в <a href="https://www.figma.com/file/TXW9UYVSf5HJ4RP1hxuNnY/Stock-market-analizing-DWH?type=design&node-id=0%3A1&mode=design&t=FP0pZhkhRQ7HmK8z-1">файле Figma</a> 
