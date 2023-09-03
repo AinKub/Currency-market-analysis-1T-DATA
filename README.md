@@ -4,6 +4,9 @@
 Полное описание задачи находится в файле [project_task.md](./docs/project_task.md)
 
 ## Шаги реализации
+
+### Проектирование DWH
+
 На начальном этапе была поставлена задача спроектировать DHW, его логическую структуру, от которой впоследующем можно было бы отталкиваться в выборе инструментов для организации ETL процесса.
 
 Данный сайт, https://www.alphavantage.co, предоставляет следующие данные:
@@ -73,3 +76,7 @@
 ![cores diagram](./docs/img/cores_diagram.jpg)
 
 Или здесь, более детально, в <a href="https://www.figma.com/file/TXW9UYVSf5HJ4RP1hxuNnY/Stock-market-analizing-DWH?type=design&node-id=0%3A1&mode=design&t=FP0pZhkhRQ7HmK8z-1">файле Figma</a> 
+
+### Загрузка (Extract) данных
+
+Для извлечения данных через api, предоставляемое https://www.alphavantage.co, был написал модуль [stock_data_loader.py](./src/stock_data_loader.py), который делает запрос к api и получает оттуда данные в формате csv. Полученные данные он записывает в csv файлы в папку temp_data, которая лежит рядом с данным readme.
