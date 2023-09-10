@@ -3,7 +3,7 @@ import json
 import requests
 from requests.auth import HTTPBasicAuth
 
-from config import (AIRFLOW_PASSWORD, AIRFLOW_USERNAME, ALPHA_VANTAGE_API_KEY,
+from config import (AIRFLOW_PASSWORD, AIRFLOW_USERNAME, ALPHA_VANTAGE_API_KEYS,
                     ALPHA_VANTAGE_QUERY_URL, INIT_SYMBOLS)
 
 
@@ -21,12 +21,12 @@ def load_variables_and_connections():
     )
     datas.append((init_symbols_data, 'variables'))
 
-    alpha_vantage_api_key_data = dict(
-        key='alpha_vantage_api_key',
-        description='API key for authorization in Alpha Vantage',
-        value=ALPHA_VANTAGE_API_KEY
+    alpha_vantage_api_keys_data = dict(
+        key='alpha_vantage_api_keys',
+        description='API keys for authorization in Alpha Vantage',
+        value=json.dumps(ALPHA_VANTAGE_API_KEYS)
     )
-    datas.append((alpha_vantage_api_key_data, 'variables'))
+    datas.append((alpha_vantage_api_keys_data, 'variables'))
 
     alpha_vantage_query_url_data = dict(
         key='alpha_vantage_query_url',
