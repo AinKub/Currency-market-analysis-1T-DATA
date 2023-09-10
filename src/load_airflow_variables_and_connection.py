@@ -58,5 +58,4 @@ def load_variables_and_connections():
 
 
 if __name__ == '__main__':
-    print('Hello!')
-    # load_variables_and_connections()
+    load_variables_and_connections()
