@@ -3,6 +3,67 @@
 
 Полное описание задачи находится в файле [project_task.md](./docs/project_task.md)
 
+## Начало работы
+
+Для начала работы необходимо склонировать репозиторий на свою машину:
+```
+git clone https://github.com/AinKub/Currency-market-analysis-1T-DATA.git
+```
+
+Затем нужно перейти в папку проекта, переименовать `.env.example` в `.env`
+```
+cd Currency-market-analysis-1T-DATA
+mv .env.example .env
+```
+
+В `.env` изменить `ALPHA_VANTAGE_API_KEY` на свой (Получить его можно по этому адресу: https://www.alphavantage.co/support/#api-key)
+
+Перейти в директорию `docker-hadoop-spark-airflow` и запустить контейнеры
+```
+cd ./docker-hadoop-spark-airflow
+docker compose up
+```
+
+После сборки станут доступны следующие адреса:
+1) Airflow - http://localhost:8079/
+2) Namenode - http://localhost:9870/dfshealth.html#tab-overview
+3) Datanode1 - http://localhost:9864/datanode.html
+4) Resourcemanager - http://localhost:8087/cluster/
+5) Nodemanager1 - http://localhost:8042/node/
+6) Historyserver - http://localhost:8188/applicationhistory/
+7) Spark-master - http://localhost:8080/
+8) Spark-worker-1 - http://localhost:8081/
+8) Spark-worker-2 - http://localhost:8082/
+9) Hue - http://localhost:8888/
+
+Для работы проекта необходимо инициализировать в Airflow следующие переменные:
+- **init_symbols**, являющаяся списком всех тикеров, которые будут отслеживаться
+- **alpha_vantage_api_key**, т.е. апи ключ, полученный ранее и добавленный в .env
+- **alpha_vantage_query_url**, т.е. адрес Alpha Vantage, куда будут посылаться запросы
+
+А также нужно инициализировать в Airflow следующие подключения:
+- **spark_default**, для работы с контейнером Spark-master
+
+Сделать это можно с помощью скрипта в директории `src` [load_airflow_variables_and_connection.py](./src/load_airflow_variables_and_connection.py), но предварительно настроив окружение
+```
+cd ..  # Если находитесь в директории docker-hadoop-spark-airflow
+python3 -m venv venv
+
+source venv/bin/activate   # Если ОС Linux
+venv\scripts\activate.bat  # Для Windows 
+
+pip install -r requirements.txt
+
+python3 src/load_airflow_variables_and_connection.py
+```
+
+После этого в консоли можно увидеть следующее сообщение:
+<br></br>
+![added_vars_and_conns_to_airflow](./docs/img/added_vars_and_conns_to_airflow.jpg)
+
+А в Airflow по адресу http://localhost:8079/variable/list/ должны появиться добавленные скриптом переменные. А подключения здесь - http://localhost:8079/connection/list/
+
+
 ## Шаги реализации
 
 ### Проектирование DWH
