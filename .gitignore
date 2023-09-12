@@ -162,4 +162,4 @@ cython_debug/
 !docker-hadoop-spark-airflow/.env
 
 docker-hadoop-spark-airflow/airflow_conf
-raw_layer_temp_data/
+raw_layer_data/

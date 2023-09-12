@@ -6,9 +6,10 @@ from pathlib import Path
 from airflow import DAG
 from airflow.models import Variable
 from airflow.operators.python import PythonOperator
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 
 from airflow_scripts.stock_data_loader import extract_timeseries_to_temp_data_folder
-timedelta()
+
 
 args = {
     'owner': 'airflow',
@@ -89,6 +90,7 @@ def load_all_intraday_data_first_time():
         except FileNotFoundError:
             continue
 
+
 with DAG(
     'initial_data_load',
     catchup=False,
@@ -105,4 +107,10 @@ with DAG(
         python_callable=load_all_intraday_data_first_time
     )
 
-    [task1_1, task1_2]
+    task2_1 = SparkSubmitOperator(
+        task_id='load_all_temp_daily_data_to_hdfs',
+        application=str(Path.cwd() / 'spark_scripts' / 'load_daily_to_hdfs.py'),
+        conn_id='spark_default'
+    )
+
+    [task1_1, task1_2] >> task2_1
