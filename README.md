@@ -16,37 +16,31 @@ cd Currency-market-analysis-1T-DATA
 mv .env.example .env
 ```
 
-В `.env` изменить `ALPHA_VANTAGE_API_KEY` на свой (Получить его можно по этому адресу: https://www.alphavantage.co/support/#api-key)
+В `.env` изменить `ALPHA_VANTAGE_API_KEYS` на свой (Получить его можно по этому адресу: https://www.alphavantage.co/support/#api-key)
+Т.к. инициализирующий скрипт собирает данные за последние полгода, а в день доступно максимум 100 запросов + можно сделать только 5 запросов в минуту, то рекомендуется ипользовать премиум подписку (Но можно и создать несколько ключей, чего автор проекта не одобряет, но в качестве единовременного эксперимента можно попробовать)
 
-Перейти в директорию `docker-hadoop-spark-airflow` и запустить контейнеры
+Перейти в директорию `docker-clickhouse-airflow-with-spark` и запустить контейнеры
 ```
-cd ./docker-hadoop-spark-airflow
+cd ./docker-clickhouse-airflow-with-spark
+docker build -t airflow-with-java .
 docker compose up
 ```
+airflow-with-java требуется, чтобы не возникало проблем с переменной окружения `JAVA_HOME` для работы `SparkSubmitOperator`
 
 После сборки станут доступны следующие адреса:
-1) Airflow - http://localhost:8079/
-2) Namenode - http://localhost:9870/dfshealth.html#tab-overview
-3) Datanode1 - http://localhost:9864/datanode.html
-4) Resourcemanager - http://localhost:8087/cluster/
-5) Nodemanager1 - http://localhost:8042/node/
-6) Historyserver - http://localhost:8188/applicationhistory/
-7) Spark-master - http://localhost:8080/
-8) Spark-worker-1 - http://localhost:8081/
-8) Spark-worker-2 - http://localhost:8082/
-9) Hue - http://localhost:8888/
+1) Airflow - http://localhost:8080/
 
 Для работы проекта необходимо инициализировать в Airflow следующие переменные:
 - **init_symbols**, являющаяся списком всех тикеров, которые будут отслеживаться
-- **alpha_vantage_api_key**, т.е. апи ключ, полученный ранее и добавленный в .env
+- **alpha_vantage_api_keys**, т.е. апи ключи, полученные ранее и добавленные в .env
 - **alpha_vantage_query_url**, т.е. адрес Alpha Vantage, куда будут посылаться запросы
 
 А также нужно инициализировать в Airflow следующие подключения:
-- **spark_default**, для работы с контейнером Spark-master
+- **spark_default**, для работы `SparkSubmitOperator`
 
 Сделать это можно с помощью скрипта в директории `src` [load_airflow_variables_and_connection.py](./src/load_airflow_variables_and_connection.py), но предварительно настроив окружение
 ```
-cd ..  # Если находитесь в директории docker-hadoop-spark-airflow
+cd ..  # Если находитесь в директории docker-clickhouse-airflow-with-spark
 python3 -m venv venv
 
 source venv/bin/activate   # Если ОС Linux
@@ -61,7 +55,7 @@ python3 src/load_airflow_variables_and_connection.py
 <br></br>
 ![added_vars_and_conns_to_airflow](./docs/img/added_vars_and_conns_to_airflow.jpg)
 
-А в Airflow по адресу http://localhost:8079/variable/list/ должны появиться добавленные скриптом переменные. А подключения здесь - http://localhost:8079/connection/list/
+А в Airflow по адресу http://localhost:8080/variable/list/ должны появиться добавленные скриптом переменные. А подключения здесь - http://localhost:8080/connection/list/
 
 
 ## Шаги реализации
@@ -116,6 +110,7 @@ python3 src/load_airflow_variables_and_connection.py
     }
 }
 ```
+Данные можно получить или в формате json, как показано выше, или в формате csv. Выбор сделан в пользу формата csv, т.к. предоставляемые данные легче читать с помощью spark именно в этом формате.
 
 Итоговая витрина, которая должна была быть сформирована, включает в себя следующие поля:
 1) Суррогатный ключ валюты
@@ -140,4 +135,4 @@ python3 src/load_airflow_variables_and_connection.py
 
 ### Загрузка (Extract) данных
 
-Для извлечения данных через api, предоставляемое https://www.alphavantage.co, был написал модуль [stock_data_loader.py](./src/stock_data_loader.py), который делает запрос к api и получает оттуда данные в формате csv. Полученные данные он записывает в csv файлы в папку temp_data, которая лежит рядом с данным readme.
+Для извлечения данных через api, предоставляемое https://www.alphavantage.co, был написал модуль [stock_data_loader.py](./src/stock_data_loader.py), который делает запрос к api и получает оттуда данные в формате csv. Полученные данные он записывает в csv файлы в папку raw_layer_data, которая лежит в директории `docker-clickhouse-airflow-with-spark`

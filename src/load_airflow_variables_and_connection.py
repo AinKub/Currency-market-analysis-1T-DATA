@@ -7,7 +7,7 @@ from config import (AIRFLOW_PASSWORD, AIRFLOW_USERNAME, ALPHA_VANTAGE_API_KEYS,
                     ALPHA_VANTAGE_QUERY_URL, INIT_SYMBOLS)
 
 
-AIRFLOW_API_URL = 'http://localhost:8079/api/v1/'
+AIRFLOW_API_URL = 'http://localhost:8080/api/v1/'
 
 
 def load_variables_and_connections():
@@ -38,7 +38,7 @@ def load_variables_and_connections():
     spark_connection_data = {
         "connection_id": "spark_default",
         "conn_type": "spark",
-        "host": "localhost",
+        "host": "local[4]",
         "extra": json.dumps({"queue": "root.default"})
     }
     datas.append((spark_connection_data, 'connections'))

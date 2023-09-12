@@ -159,7 +159,7 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-!docker-hadoop-spark-airflow/.env
+!docker-clickhouse-airflow-with-spark/.env
 
-docker-hadoop-spark-airflow/airflow_conf
+airflow_conf/
 raw_layer_data/
