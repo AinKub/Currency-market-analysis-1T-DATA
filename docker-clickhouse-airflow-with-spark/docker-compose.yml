@@ -39,6 +39,19 @@ x-airflow-common:
       condition: service_healthy
 
 services:
+
+  clickhouse:
+    <<: *project-common
+    image: clickhouse/clickhouse-server:latest
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144 
+    ports:
+      - "8123:8123"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ./clickhouse/ddl/init.sql:/docker-entrypoint-initdb.d/init.sql
   
   postgres:
     <<: *project-common
@@ -239,6 +252,7 @@ services:
       - airflow
 
 volumes:
+  clickhouse-data:
   postgres-db-volume:
 
 networks:

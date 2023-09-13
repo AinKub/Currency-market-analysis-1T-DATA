@@ -107,10 +107,16 @@ with DAG(
         python_callable=load_all_intraday_data_first_time
     )
 
-    task2_1 = SparkSubmitOperator(
+    task2 = SparkSubmitOperator(
+        task_id='load_symbols_and_timeseries_to_ch',
+        application=str(Path.cwd() / 'spark_scripts' / 'load_symbols_and_timeseries_to_ch.py'),
+        conn_id='spark_default'
+    )
+
+    task3_1 = SparkSubmitOperator(
         task_id='load_all_temp_daily_data_to_hdfs',
         application=str(Path.cwd() / 'spark_scripts' / 'load_daily_to_hdfs.py'),
         conn_id='spark_default'
     )
 
-    [task1_1, task1_2] >> task2_1
+    [task1_1, task1_2] >> task2 >> [task3_1,]
