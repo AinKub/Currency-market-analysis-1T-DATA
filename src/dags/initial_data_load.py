@@ -121,4 +121,13 @@ with DAG(
         driver_class_path=CLICKHOUSE_DRIVER_JAR
     )
 
-    [task1_1, task1_2] >> task2
+    task3 = SparkSubmitOperator(
+        task_id='analize_data_for_last_day_and_add_it_to_datamart',
+        application=str(Path.cwd() / 'spark_scripts' / 'analize_data_for_last_day_and_add_it_to_datamart.py'),
+        conn_id='spark_default',
+        application_args=[CLICKHOUSE_JDBC, CLICKHOUSE_DRIVER],
+        jars=CLICKHOUSE_DRIVER_JAR,
+        driver_class_path=CLICKHOUSE_DRIVER_JAR
+    )
+
+    [task1_1, task1_2] >> task2 >> task3

@@ -35,7 +35,7 @@ def main():
     one_min_df = read_rates_csv(spark, '1min', schema)
     min_timestamp_row = (
         one_min_df.select('timestamp')
-                  .sort(one_min_df.timestamp.desc())
+                  .sort(one_min_df.timestamp.asc())
                   .head()
     )
     min_date = min_timestamp_row.timestamp.date()
@@ -44,7 +44,7 @@ def main():
     filtered_daily_df_by_date = daily_df.filter(to_date(col('timestamp')) >= lit(min_date))
 
     result_df = one_min_df.union(filtered_daily_df_by_date)
-    result_df = result_df.sort(result_df.timestamp.desc(), result_df.symbol_name.asc())
+    # result_df = result_df.sort(result_df.timestamp.desc(), result_df.symbol_name.asc())
     write_to_ch(result_df, CLICKHOUSE_JDBC, 'rateshouse.prices_and_volumes')
 
 if __name__ == '__main__':
