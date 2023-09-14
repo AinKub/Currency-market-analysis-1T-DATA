@@ -112,4 +112,4 @@ with DAG(
         driver_class_path=CLICKHOUSE_DRIVER_JAR
     )
 
-    [task1_1, task1_2] >> task2# >> task3
+    [task1_1, task1_2] >> task2 >> task3
