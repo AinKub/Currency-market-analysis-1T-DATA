@@ -1,5 +1,4 @@
 from typing import Literal, Union
-import uuid
 from pathlib import Path
 
 from pyspark.sql import SparkSession, DataFrame
@@ -9,7 +8,8 @@ from pyspark.sql.types import StructType
 
 def read_rates_csv(spark: SparkSession,
                    timeseries_to_read: Literal['daily', '1min'],
-                   schema: Union[StructType, None] = None):
+                   schema: Union[StructType, None] = None
+                   ) -> DataFrame:
       
     is_read_first_df = False
     raw_data_layer = Path(Path.cwd().root) / 'raw_layer_data'
@@ -19,7 +19,7 @@ def read_rates_csv(spark: SparkSession,
 
         if is_read_first_df:
              df = df.union(
-                 return_df_with_name_timeseriese_and_uuids(
+                 return_df_with_symbol_and_timeseries_name(
                      spark,
                      symbol_folder / timeseries_to_read,
                      symbol_name,
@@ -28,7 +28,7 @@ def read_rates_csv(spark: SparkSession,
                  )
              )
         else:
-            df = return_df_with_name_timeseriese_and_uuids(
+            df = return_df_with_symbol_and_timeseries_name(
                 spark,
                 symbol_folder / timeseries_to_read,
                 symbol_name,
@@ -38,20 +38,15 @@ def read_rates_csv(spark: SparkSession,
 
             is_read_first_df = True
 
-    df.show()
-    df.printSchema()
+    return df
 
 
-def return_df_with_name_timeseriese_and_uuids(spark: SparkSession,
+def return_df_with_symbol_and_timeseries_name(spark: SparkSession,
                                               file_path: Union[Path, str],
                                               symbol_name,
                                               timeseries_name,
                                               schema: Union[StructType, None] = None
-                                              ) -> DataFrame:
-    symbol_uuid = str(uuid.uuid4())
-    timeseries_uuid = str(uuid.uuid4())
-    prices_and_volumes_uuid = str(uuid.uuid4())
-    
+                                              ) -> DataFrame:  
     df = (
         spark.read.csv(
             f'file://{file_path}',
@@ -59,12 +54,9 @@ def return_df_with_name_timeseriese_and_uuids(spark: SparkSession,
             header=True
             )
             .withColumns(
-                {'prices_and_volumes_uuid': lit(prices_and_volumes_uuid),
-                 'symbol_name': lit(symbol_name),
-                 'symbol_uuid': lit(symbol_uuid),
-                 'timeseries_name': lit(timeseries_name),
-                 'timeseries_uuid': lit(timeseries_uuid)}
+                {'symbol_name': lit(symbol_name),
+                 'timeseries_name': lit(timeseries_name)}
                  )
-        ).limit(5)
+        )
     
     return df

@@ -11,6 +11,11 @@ from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOpe
 from airflow_scripts.stock_data_loader import extract_timeseries_to_temp_data_folder
 
 
+CLICKHOUSE_DRIVER_JAR = '/opt/airflow/spark_scripts/jars/clickhouse-jdbc-0.3.1.jar'
+CLICKHOUSE_JDBC = 'jdbc:clickhouse://clickhouse:8123/rateshouse'
+CLICKHOUSE_DRIVER = 'com.clickhouse.jdbc.ClickHouseDriver'
+
+
 args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -107,16 +112,13 @@ with DAG(
         python_callable=load_all_intraday_data_first_time
     )
 
-    task2 = SparkSubmitOperator(
-        task_id='load_symbols_and_timeseries_to_ch',
-        application=str(Path.cwd() / 'spark_scripts' / 'load_symbols_and_timeseries_to_ch.py'),
-        conn_id='spark_default'
+    task2= SparkSubmitOperator(
+        task_id='load_all_raw_data_to_ch',
+        application=str(Path.cwd() / 'spark_scripts' / 'load_all_data_to_ch.py'),
+        conn_id='spark_default',
+        application_args=[CLICKHOUSE_JDBC, CLICKHOUSE_DRIVER],
+        jars=CLICKHOUSE_DRIVER_JAR,
+        driver_class_path=CLICKHOUSE_DRIVER_JAR
     )
 
-    task3_1 = SparkSubmitOperator(
-        task_id='load_all_temp_daily_data_to_hdfs',
-        application=str(Path.cwd() / 'spark_scripts' / 'load_daily_to_hdfs.py'),
-        conn_id='spark_default'
-    )
-
-    [task1_1, task1_2] >> task2 >> [task3_1,]
+    [task1_1, task1_2] >> task2

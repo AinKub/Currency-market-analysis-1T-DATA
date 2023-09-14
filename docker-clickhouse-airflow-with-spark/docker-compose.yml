@@ -43,6 +43,7 @@ services:
   clickhouse:
     <<: *project-common
     image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
     ulimits:
       nofile:
         soft: 262144
