@@ -1,11 +1,12 @@
 import sys
-from pyspark.sql import SparkSession
-from pyspark.sql.types import (TimestampType, FloatType, IntegerType, StructField,
-                               StructType)
-from pyspark.sql.functions import to_date, col, lit
 
+import pendulum
 from modules.read_csv import read_rates_csv
 from modules.writing_to_ch import write_to_ch
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, to_date
+from pyspark.sql.types import (FloatType, IntegerType, StructField, StructType,
+                               TimestampType)
 
 CLICKHOUSE_JDBC = sys.argv[-2]
 CLICKHOUSE_DRIVER = sys.argv[1]
@@ -17,7 +18,7 @@ def main():
     """
     spark = (
         SparkSession.builder
-        .appName('load_all_data_to_ch')
+        .appName('load_delta_to_ch')
         .getOrCreate()
     )
     
@@ -33,19 +34,12 @@ def main():
     )
 
     one_min_df = read_rates_csv(spark, '1min', schema)
-    min_timestamp_row = (
-        one_min_df.select('timestamp')
-                  .sort(one_min_df.timestamp.asc())
-                  .head()
-    )
-    min_date = min_timestamp_row.timestamp.date()
-
     daily_df = read_rates_csv(spark, 'daily', schema)
-    filtered_daily_df_by_date = daily_df.filter(to_date(col('timestamp')) >= lit(min_date))
-
-    result_df = one_min_df.union(filtered_daily_df_by_date)
-    # result_df = result_df.sort(result_df.timestamp.desc(), result_df.symbol_name.asc())
+    result_df = one_min_df.union(daily_df).filter(
+        to_date(col('timestamp')) == pendulum.now('US/Eastern').subtract(days=1).date()
+    )
     write_to_ch(result_df, CLICKHOUSE_JDBC, 'rateshouse.prices_and_volumes')
+
 
 if __name__ == '__main__':
     main()

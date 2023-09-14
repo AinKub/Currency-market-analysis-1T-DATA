@@ -1,5 +1,4 @@
 import json
-
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -35,88 +34,69 @@ def _init_raw_layer_folders(*folders):
     return destination_path
 
 
-def load_daily_data_first_time():
+def load_last_daily_data():
     """
-    Загружает общие данные по торгам по каждому дню за всё время
+    Загружает общие данные по торгам по каждому дню за 100 дней
     """
-    init_symbols = Variable.get('init_symbols')
+    symbols_to_follow = Variable.get('symbols_to_follow')
     alpha_vantage_api_keys = Variable.get('alpha_vantage_api_keys')
     alpha_vantage_query_url = Variable.get('alpha_vantage_query_url')
 
     alpha_vantage_api_keys = json.loads(alpha_vantage_api_keys)
-    init_symbols = json.loads(init_symbols)
-    for symbol in init_symbols:
+    symbols_to_follow = json.loads(symbols_to_follow)
+    for symbol in symbols_to_follow:
         
-        destination_path = _init_raw_layer_folders(symbol, 'daily')
+        destination_path = _init_raw_layer_folders(str(datetime.now().date()), symbol, 'daily')
         extract_timeseries_to_temp_data_folder(alpha_vantage_api_keys,
                                                alpha_vantage_query_url,
                                                destination_path,
                                                'daily',
                                                symbol,
-                                               daily_outputsize='full',
+                                               daily_outputsize='compact',
                                                datatype='csv')
-        
-    Variable.set(key='symbols_to_follow', value=init_symbols, serialize_json=True)
-        
 
-def load_all_intraday_data_first_time():
+
+def load_last_intraday_data():
     """
-    Загружает данные по торгам внутри дня по каждому дню на протяжении последних
-    6 месяцев
+    Загружает данные по торгам внутри дня (прошедшего)
     """
-    init_symbols = Variable.get('init_symbols')
+    symbols_to_follow = Variable.get('symbols_to_follow')
     alpha_vantage_api_keys = Variable.get('alpha_vantage_api_keys')
     alpha_vantage_query_url = Variable.get('alpha_vantage_query_url')
 
     alpha_vantage_api_keys = json.loads(alpha_vantage_api_keys)
-    init_symbols = json.loads(init_symbols)
-    now = datetime.now()
-    for symbol in init_symbols:
-        destination_path = _init_raw_layer_folders(symbol, '1min')
-
-        try:
-            year = now.year
-            month_num = now.month
-            for i in range(6):
-
-                month = '-'.join([str(year), f'{month_num}'.rjust(2, '0')])
-                extract_timeseries_to_temp_data_folder(alpha_vantage_api_keys,
-                                                       alpha_vantage_query_url,
-                                                       destination_path,
-                                                       'intraday',
-                                                       symbol,
-                                                       '1min',
-                                                       intraday_outputsize='full',
-                                                       month=month,
-                                                       datatype='csv')
-                month_num -= 1
-                if month_num == 0:
-                    year -= 1
-                    month_num = 12
-                
-        except FileNotFoundError:
-            continue
-
+    symbols_to_follow = json.loads(symbols_to_follow)
+    for symbol in symbols_to_follow:
+        destination_path = _init_raw_layer_folders(str(datetime.now().date()), symbol, '1min')
+        extract_timeseries_to_temp_data_folder(alpha_vantage_api_keys,
+                                               alpha_vantage_query_url,
+                                               destination_path,
+                                               'intraday',
+                                               symbol,
+                                               '1min',
+                                               intraday_outputsize='full',
+                                               datatype='csv')
+        
 
 with DAG(
-    'initial_data_load',
+    'load_delta',
     catchup=False,
-    schedule='@once',
+    schedule='0 0 * * *',
     default_args=args
 ):
     task1_1 = PythonOperator(
-        task_id='load_all_daily_data_for_init_symbols',
-        python_callable=load_daily_data_first_time
+        task_id='load_last_daily_data',
+        python_callable=load_last_daily_data
     )
 
     task1_2 = PythonOperator(
-        task_id='load_all_intradays_data_for_init_symbols',
-        python_callable=load_all_intraday_data_first_time
+        task_id='load_last_intraday_data',
+        python_callable=load_last_intraday_data
     )
 
-    task2= SparkSubmitOperator(
-        task_id='load_all_raw_data_to_ch',
-        application=str(Path.cwd() / 'spark_scripts' / 'load_all_data_to_ch.py'),
+    task2 = SparkSubmitOperator(
+        task_id='load_delta_to_ch',
+        application=str(Path.cwd() / 'spark_scripts' / 'load_delta_to_ch.py'),
         conn_id='spark_default',
         application_args=[CLICKHOUSE_JDBC, CLICKHOUSE_DRIVER],
         jars=CLICKHOUSE_DRIVER_JAR,
@@ -132,4 +112,4 @@ with DAG(
         driver_class_path=CLICKHOUSE_DRIVER_JAR
     )
 
-    [task1_1, task1_2] >> task2 >> task3
+    [task1_1, task1_2] >> task2# >> task3

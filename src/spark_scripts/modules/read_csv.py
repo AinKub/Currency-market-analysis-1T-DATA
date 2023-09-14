@@ -1,5 +1,6 @@
 from typing import Literal, Union
 from pathlib import Path
+from datetime import datetime
 
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql.functions import lit
@@ -13,8 +14,9 @@ def read_rates_csv(spark: SparkSession,
       
     is_read_first_df = False
     raw_data_layer = Path(Path.cwd().root) / 'raw_layer_data'
+    now_folder = raw_data_layer / str(datetime.now().date())
 
-    for symbol_folder in raw_data_layer.iterdir():
+    for symbol_folder in now_folder.iterdir():
         symbol_name = symbol_folder.name
 
         if is_read_first_df:
