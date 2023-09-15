@@ -3,6 +3,9 @@
 
 Полное описание задачи находится в файле [project_task.md](./docs/project_task.md)
 
+Презентация - [final_presentation](./docs/final_presentation.pptx)
+
+
 ## Начало работы
 
 Для начала работы необходимо склонировать репозиторий на свою машину:
